@@ -1,0 +1,234 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Cars Dashboard</title>
+    <style>
+      body {
+        margin: 0%;
+        padding: 0%;
+        box-sizing: border-box;
+        font-family: arial, sans-serif;
+        background-color: rgba(8, 8, 8, 0.76);
+      }
+      .main {
+        display: flex;
+        flex-direction: row;
+        gap: 2rem;
+      }
+      @media (max-width: 1600px) {
+        .main {
+          flex-direction: column;
+        }
+      }
+      .table,
+      .form {
+        width: fit-content;
+        margin-top: 1rem;
+        margin-left: 1rem;
+        padding: 2rem;
+        background-color: #dfdfdf;
+        border-radius: 10px;
+      }
+      .table thead th {
+        font-size: 1.2rem;
+        font-family: "Courier New", Courier, monospace;
+        font-weight: 600;
+        padding: 0.5rem;
+        border: 1px solid #aaaaaa;
+        border-radius: 5px;
+        margin: 0rem 3rem;
+      }
+      tbody tr {
+        display: table-row;
+        /* margin-bottom: 1rem ;
+        border-bottom: 2px solid #ff5353; */
+      }
+      tbody tr td {
+        text-align: center;
+      }
+      .form {
+        display: flex;
+        flex-direction: row;
+      }
+
+      .form-section {
+        text-align: center;
+        justify-content: center;
+        margin: 0.5rem 0.5rem;
+        display: flex;
+        flex-direction: column;
+      }
+      input {
+        max-width: 5rem;
+      }
+      button {
+        width: fit-content;
+        font-size: 1rem;
+        padding: 0.5rem;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="main">
+      <div class="table">
+        <table>
+          <thead>
+            <th>ID</th>
+            <th>Brand</th>
+            <th>Model</th>
+            <th>Year</th>
+            <th>Color</th>
+            <th>Option</th>
+          </thead>
+          <tbody id="cars-tbody"></tbody>
+        </table>
+      </div>
+      <div class="form">
+        <div class="form-section">
+          <label for="id">Id</label>
+          <input type="number" name="id" id="id" min="0" />
+        </div>
+
+        <div class="form-section">
+          <label for="brand">Brand</label>
+          <input type="text" name="brand" id="brand" />
+        </div>
+
+        <div class="form-section">
+          <label for="model">Model</label>
+          <input type="text" name="model" id="model" />
+        </div>
+
+        <div class="form-section">
+          <label for="year">Year</label>
+          <input type="text" name="year" id="year" />
+        </div>
+
+        <div class="form-section">
+          <label for="color">Color</label>
+          <input type="color" name="color" id="color" />
+        </div>
+
+        <div class="form-section">
+          <button type="button" onclick="addCar()">Add Car</button>
+        </div>
+      </div>
+    </div>
+
+    <script>
+      async function loadCars() {
+        const carsResponse = await fetch("/cars");
+        const carsdata = await carsResponse.json();
+        document.getElementById("cars-tbody").innerHTML = carsdata
+          .filter((car) => car && car.id != null) // Filter out null or undefined cars or cars without id
+          .map(
+            (car) =>
+              `
+            <tr id="car-${car.id}">
+              <td>${car.id}</td>
+              <td>${car.brand}</td>
+              <td>${car.model}</td>
+              <td>${car.year}</td>
+              <td>${car.color}</td>
+              <td>
+                <div class="option-buttons">
+                  <button type="button" onclick="deleteCar('${car.id}')">
+                    delete
+                  </button>
+                  <button type="button" onclick="editCar('${car.id}')">
+                    edit
+                  </button>
+                </div>
+              </td>
+            </tr>
+            `
+          )
+          .join("");
+      }
+      loadCars();
+      async function addCar() {
+        const id = document.getElementById("id").value;
+        const brand = document.getElementById("brand").value;
+        const model = document.getElementById("model").value;
+        const year = document.getElementById("year").value;
+        const color = document.getElementById("color").value;
+        const body = { id, brand, model, year, color };
+        let res = await fetch("/car", {
+          method: "POST",
+          headers: { "content-type": "application/json" },
+          body: JSON.stringify(body),
+        });
+
+        resBody = await res.json();
+        loadCars();
+        alert(resBody.message);
+      }
+
+      async function editCar(carId) {
+        // const carRow = document.getElementById(`car-${carId}`);
+        const carEditInputs = document.createElement("tr");
+        carEditInputs.setAttribute("id", "carEdit-section");
+        carEditInputs.innerHTML = `<td><div class="form-section"></div></td>
+    <td>
+      <div class="form-section">
+        <input type="text" name="brand" id="edit-brand" />
+      </div>
+    </td>
+    <td>
+      <div class="form-section">
+        <input type="text" name="model" id="edit-model" />
+      </div>
+    </td>
+    <td>
+      <div class="form-section">
+        <input type="text" name="year" id="edit-year" />
+      </div>
+    </td>
+    <td>
+      <div class="form-section">
+        <input type="color" name="color" id="edit-color" />
+      </div>
+    </td>
+            <td>
+          <button type="button" onclick="saveEdit('${carId}')">
+            Save
+          </button>
+        </td>`;
+        document.getElementById("cars-tbody").appendChild(carEditInputs);
+        // carRow.append(carEditInputs);
+      }
+      async function saveEdit(carId) {
+        const id = carId;
+        const brand = document.getElementById("edit-brand").value;
+        const model = document.getElementById("edit-model").value;
+        const year = document.getElementById("edit-year").value;
+        const color = document.getElementById("edit-color").value;
+        const carEditInputs = document.getElementById("carEdit-section");
+        console.log(id, brand);
+        carEditInputs.remove();
+        let body = { id, brand, model, year, color };
+        console.log(body);
+        const editRes = await fetch("/car?id=" + carId, {
+          method: "PUT",
+          headers: {
+            "content-type": "application/json",
+          },
+          body: JSON.stringify(body),
+        });
+        resBody = await editRes.json();
+        alert(resBody.message);
+        loadCars();
+      }
+      async function deleteCar(carId) {
+        const deleteRes = await fetch("/car?id=" + carId, {
+          method: "DELETE",
+        });
+        let resBody = await deleteRes.json();
+        loadCars();
+        alert(resBody.message);
+      }
+    </script>
+  </body>
+</html>

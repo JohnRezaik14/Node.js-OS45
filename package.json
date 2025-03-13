@@ -1,0 +1,14 @@
+{
+  "name": "node",
+  "version": "1.0.0",
+  "description": "first version in course Node.js in OS",
+  "main": "app.js",
+  "scripts": {
+    "test": "start"
+  },
+  "author": "John Lamei",
+  "license": "ISC",
+  "dependencies": {
+    "express": "^4.21.2"
+  }
+}

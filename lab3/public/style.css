@@ -1,0 +1,11 @@
+body {
+  margin: 0%;
+  box-sizing: border-box;
+  padding: 0%;
+}
+main {
+  width: 70%;
+  padding: 2rem;
+  margin: auto;
+  background-color: #ccc;
+}
